@@ -1,0 +1,17 @@
+[
+    {
+        "_id": "64dff1cc0a023e2d85fe5a61",
+        "latitudeOflocation": 24.9054491,
+        "longitudeOflocation": 91.8534242,
+        "tokenExpo": "ExponentPushToken[QqByNDEQAwMLn5n3oI-VOS]",
+        "email": "shahriar@gmail.com",
+        "locationData": {
+            "type": "Point",
+            "coordinates": [
+                91.8534242,
+                24.9054491
+            ]
+        },
+        "distance": 4141.756400261879
+    }
+]

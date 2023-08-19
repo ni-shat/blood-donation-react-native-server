@@ -274,12 +274,12 @@ async function run() {
             res.send(result);
         })
 
+
         // find-nearby-donors?latitude=${latitude}&longitude=${longitude}
         app.get('/find-nearby-donors', async (req, res) => {
-            const { latitude, longitude } = req.query; // Get latitude and longitude from the request query
+            const { latitude, longitude, bloodTypes } = req.query; // Get latitude and longitude from the request query
 
-
-            const donors = await availableUsersForAlertCollection.aggregate([
+            const nearbyDonors = await availableUsersForAlertCollection.aggregate([
                 {
                     $geoNear: {
                         near: {
@@ -293,8 +293,41 @@ async function run() {
                 }
             ]).toArray();
 
-            res.json(donors);
+            // now retrieve only those emails from usersCollection, whose bloodType matches with nearby users.
+            const donorEmails = [];
+            for (const element of nearbyDonors) {
+                console.log(element);
+                donorEmails.push(element.email);
+            }
+
+            // now find blood matched for bloodTypes query, among nearby donor emails. search in userscollection
+            const matchedNearbyEmails = await usersCollection.find(
+                {
+                    $and: [
+                        { email: { $in: donorEmails } }, // query which checks among donorEmails, is any email matches with usersCollection email
+                        { bloodType: bloodTypes }
+                    ]
+                },
+                { projection: { _id: 0, email: 1 } }
+            ).toArray();
+            console.log(matchedNearbyEmails);
+
+            // // now again search in nearbyDonors array, find the donorInformation for matchedNearbyEmails 
+            let nearbyDonorsResults = [];
+
+            for (const donor of nearbyDonors) {
+                const nearbyDonors_email = donor.email;
+                const foundEmail = matchedNearbyEmails.find(e => e.email == nearbyDonors_email); //it returns the element if true, else returns undefined.
+                if (typeof foundEmail !== 'undefined') {
+                    nearbyDonorsResults.push(donor) // store the whole info of a donor who matched with our matched email from userscollection
+                }
+            }
+            console.log(nearbyDonorsResults)
+            // WORK HERE AFTER WAKING UP. 
+
+            res.send(nearbyDonorsResults);
         });
+        // http://localhost:5000/find-nearby-donors/?latitude=24.891116&longitude=91.891277&bloodType=AB-
 
 
 
